@@ -1,0 +1,102 @@
+
+#data processing and array functions
+import pandas as pd
+import numpy as np
+from pandas import ExcelWriter
+
+#plot capabilities
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+##get_ipython().magic('matplotlib inline')
+
+#data
+from sklearn import datasets
+
+#preprocessing and data prep
+from sklearn.preprocessing import StandardScaler
+from sklearn.cross_validation import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+
+#algorithms
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+#performance metrics
+from sklearn.metrics import accuracy_score
+from sklearn.grid_search import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+#natural language toolkit
+import nltk
+from nltk.stem.porter import PorterStemmer
+##from nltk.corpus import stopwords
+##stop = stopwords.words('english')
+
+#import other utilities
+#import PyPrind
+import os
+import re
+
+
+# In[3]:
+'''
+#import text processing utilities
+import nltk
+from nltk.stem.porter import PorterStemmer
+porter = PorterStemmer()
+from nltk.corpus import stopwords
+stop = stopwords.words('english')
+def tokenizer(text):
+    return text.split()
+def tokenizer_porter(text):
+    return [porter.stem(word) for word in text.split()]
+
+'''
+# In[4]:
+
+# define function to clean up text in verbatim
+def preprocessor(text):
+    text = re.sub('<[^>]*>', '', text)
+    #emoticons = re.findall('(?::|;|=)(?:-)?(?:\)|(|D|P)',text)
+    #text = re.sub('[\W]+', ' ', text.lower()) + join(emoticons).replace('-', '')
+    #text = re.sub(emoticons, '', text.lower())
+    text = re.sub('[\W]+', ' ', text.lower())
+    return text
+
+
+# In[5]:
+# read data file
+Data_Frame = pd.read_excel('excel-file-location', sheetname='Training Sample 1000', converters={'Sample Verbatim':str},  header = 0)
+Data_Frame["Sample Response"] = Data_Frame["Sample Response"].apply(preprocessor)
+
+
+x = Data_Frame["Sample Response"]
+y = Data_Frame["Category1"]
+x_train=x[0:600]
+print(x_train)
+x_test=x[600:1007]
+print(x_test)
+y_train=y[0:600]
+y_test=y[600:1007]
+#x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+print(x_test.index)
+print(x_train.index)
+clf= Perceptron()
+tfidf = TfidfVectorizer()
+abc = Pipeline([('vect', tfidf), ('clf',  clf)])
+abc.fit(x_train, y_train)
+pred=abc.predict(x_test)
+preddf=pd.DataFrame(data=pred) #,index=pred[0:]) 
+writer= ExcelWriter('excel-file-location')
+preddf.to_excel(writer,sheet_name='output') #,header='Autopay_Test',index=x_test)
+
+
+accu = accuracy_score(pred, y_test, normalize=True)
+print(accu)
